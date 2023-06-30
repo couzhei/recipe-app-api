@@ -1,0 +1,30 @@
+version: '3.9'
+# version of docker-compose syntax that we're using
+
+# can have multiple services in the docker-compose 
+# for your app
+services:
+  app:
+    # name of our service this is just the service that 
+    # is going to run our dockerfile
+
+    build:
+      # we want to build our dockerfile inside our current directory
+      context: .
+
+    ports:
+      - "8000:8000"
+      # Maps port 8000 of the host to port 8000 of the container
+
+    volumes:
+      - ./app:/app
+      # Mounts the ./app directory from the host into the /app directory of the container
+
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    # Specifies the command to be executed when the container starts
+    # In this case, it runs the Django development server and binds it to 0.0.0.0:8000
+
+    # We can override the last part "command", by specifying our 
+    # own command we run "docker compose run"
+
