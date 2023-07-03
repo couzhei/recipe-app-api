@@ -1,60 +1,47 @@
+# Use the official Python 3.9 image based on Alpine Linux 3.13 as the base image.
 FROM python:3.9-alpine3.13
+
+# Add a maintainer label to the Docker image.
 LABEL maintainer="couzhei"
 
+# Set an environment variable to enable unbuffered Python output.
 ENV PYTHONUNBUFFERED 1
 
+# Copy the 'requirements.txt' and 'requirements.dev.txt' files from the local context to the '/tmp' directory inside the image.
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+
+# Copy the contents of the 'app' directory from the local context to the '/app' directory inside the image.
 COPY ./app /app
+
+# Set the working directory inside the image to '/app'.
 WORKDIR /app
+
+# Expose port 8000 on the Docker container.
 EXPOSE 8000
 
-# this is the default value
+# Set a build-time argument 'DEV' with a default value of 'false'.
 ARG DEV=false 
+
+# Create a Python virtual environment '/py' inside the image and upgrade 'pip'.
+# Set the PATH environment variable to include the Python executable inside the virtual environment.
+ENV PATH="/py/bin:$PATH"
+
+# Install the packages specified in 'requirements.txt'.
+# If the build-time argument 'DEV' is 'true', install the packages specified in 'requirements.dev.txt' as well.
+# Remove the '/tmp' directory to clean up after the installations.
+# Create a new user 'django-user' inside the image without a password and with no home directory.
 RUN python -m venv /py && \
-    /py/bin/pip install --upgrade pip && \
-    /py/bin/pip install -r /tmp/requirements.txt && \
+    pip install --upgrade pip && \
+    pip install -r /tmp/requirements.txt && \
     if [ $DEV = "true" ]; \
-        then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
+        then pip install -r /tmp/requirements.dev.txt ; \
     fi && \
     rm -rf /tmp && \
     adduser \
     --disabled-password \
     --no-create-home \
     django-user
-# we could use RUN for each of these commands but that would not be
-# an efficient Dockerfile, we want to make it lightweight so avoiding
-# creating additional image layers (what?) so it's single RUN compiled
-# on alpine image when we're building our image
 
-# many believe it's not very useful to create an venv in the first
-# line of the RUN command, but in any case upgrade the pip
-# and finally install the requirements
-
-# note that we then removed /tmp, because we don't want any extra
-# dependencies once it's being created. It's best practice to
-# keep Docker images as lightweight as possible so if there's no
-# needed file that you don't need on the actual image
-# please remember to delete it afterward so it saves space and therefore
-# speed
-
-# next we created a user inside our image (remember any docker image
-# is a tiny linux machine) which is considered best practice not to
-# use the root user, since if we didn't specify this the the only
-# user available inside the alpine image would be the root user
-
-# The lightweight nature of Docker images is due to their layered 
-# file system architecture. Docker images use a copy-on-write  
-# approach, where each layer represents a change or addition to
-# the previous layer. When you start a container based on a Docker 
-# image, it uses only the layers that are necessary for the 
-# application, making the image efficient in terms of disk space
-# and download times. 
-
-ENV PATH="/py/bin:$PATH"
-
-# this is will make python executable
-
+# Switch the user to 'django-user' to run the container with a non-root user.
 USER django-user
-# until this line everything was running as the root user
-# but now it switches to the new user django-user

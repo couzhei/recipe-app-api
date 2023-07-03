@@ -4,6 +4,7 @@
 
 # Docker
 .docker
+.Dockerfile-old
 
 # Python
 app/__pycache__/
