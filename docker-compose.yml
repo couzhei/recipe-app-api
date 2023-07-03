@@ -11,6 +11,8 @@ services:
     build:
       # we want to build our dockerfile inside our current directory
       context: .
+      args:
+        - DEV=true
 
     ports:
       - "8000:8000"

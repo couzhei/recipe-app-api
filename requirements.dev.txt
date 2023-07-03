@@ -1,0 +1,5 @@
+# the reason why we create a new requirement file is that 
+# we might not need packages like flake8 for deploying our
+# web app on the server, so we keep our space neat and avoid
+# using it for unnecessary packages
+flake8>=3.9.2,<3.10
